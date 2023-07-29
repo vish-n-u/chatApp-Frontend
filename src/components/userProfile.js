@@ -8,13 +8,14 @@ import {
   ModalContent,
   ModalCloseButton,
   Image,
+  Avatar,
 } from "@chakra-ui/react";
 import { useDisclosure } from "@chakra-ui/react";
 import React from "react";
-import { ViewIcon } from "@chakra-ui/icons";
 
 const UserProfile = ({ user }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
+  console.log("user", user);
   return (
     <>
       <Button
@@ -32,12 +33,13 @@ const UserProfile = ({ user }) => {
           <ModalHeader>Profile</ModalHeader>
           <ModalCloseButton />
           <ModalBody display={"flex"} justifyContent={"center"}>
-            <Image
+            <Avatar
               h="20"
               w="20"
               rounded={"full"}
               src={user.pic}
-              alt="prob.jpg"
+              name={user.username}
+              alt="pic.jpg"
               alignItems={"center"}
             />
           </ModalBody>

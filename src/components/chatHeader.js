@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Flex,
   Box,
   Tooltip,
   HStack,
@@ -10,7 +9,6 @@ import {
   Drawer,
   DrawerBody,
   DrawerContent,
-  DrawerFooter,
   DrawerOverlay,
   DrawerCloseButton,
   DrawerHeader,
@@ -22,47 +20,48 @@ import {
   MenuItem,
   MenuDivider,
   useToast,
-  VStack,
   color,
+  Badge,
 } from "@chakra-ui/react";
 import { Avatar, StatDownArrow } from "@chakra-ui/react";
 import { ChevronDownIcon, BellIcon, SearchIcon } from "@chakra-ui/icons";
+import {
+  handleClickFunction,
+  getSearchedUsers,
+} from "./helperFunctions.js/chatHeaderFunctions";
+import { getUsersChatsurl } from "../urls";
 import UserProfile from "./userProfile";
-import userContext from "../../context";
+import userContext from "../context";
 
-const ChatHeader = ({ setSelectedUser }) => {
-  const [isSearchIconClicked, setIsSearchIconClicked] = useState(false);
-  const [otherUsers, setOtherUsers] = useState([]);
+const ChatHeader = ({
+  selectedChat,
+  setSelectedChat,
+  setIsChatSelected,
+  chats,
+  setChats,
+  notifications,
+}) => {
+  const [isSearchIconClicked, setIsSearchIconClicked] = useState(false); // opens the drawer for searching user
+  const [searchResultUsers, setsearchResultUsers] = useState([]); // stores the response of searched user
   const [searchUsers, setSearchUsers] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [clickedUser, setClickedUser] = useState({}); // selected user
+  const [clickedUser, setClickedUser] = useState({}); // stores the value of the user selected in search results
   const Navigate = useNavigate();
   const Toast = useToast();
-  const ourUser = useContext(userContext).user;
-  console.log(ourUser);
-
+  let ourUser = useContext(userContext);
+  // ourUser = ourUser.user;
+  console.log("selected chat", searchResultUsers, chats, selectedChat, ourUser);
   useEffect(() => {
     async function getUsers() {
-      if (!isSearchIconClicked) return;
-      const response = await fetch(
-        "http://localhost:5000/chatApp/api/v1/users",
-        {
-          headers: {
-            "content-type": "application/json",
-            authorization: localStorage.token,
-          },
-        }
-      );
+      if (!isSearchIconClicked || !searchUsers) return;
+      const response = await fetch(getUsersChatsurl, {
+        headers: {
+          "content-type": "application/json",
+          authorization: localStorage.token,
+        },
+      });
       const responseJson = await response.json();
-      // console.log("before filter", responseJson);
-      // let newArrData = [];
-      // responseJson.userChat.map((obj) => {
-      //   obj.users.map((user) => {
-      //     if (user._id !== ourUser._id) newArrData.push(user);
-      //   });
-      // });
-      // console.log("response", response, responseJson, newArrData, ourUser._id);
-      setOtherUsers(responseJson);
+      setsearchResultUsers(responseJson);
     }
 
     getUsers();
@@ -89,13 +88,59 @@ const ChatHeader = ({ setSelectedUser }) => {
         <span style={{ textAlign: "center", fontSize: "20px" }}>MeChat!</span>
         <div>
           <Menu>
-            <MenuButton>
+            <MenuButton marginX={"3"}>
               <BellIcon w={"7"} h={"10"} color={"gray.800"} />
+              <Badge
+                px="6px"
+                py="4px"
+                bgColor={"red.400"}
+                rounded={"full"}
+                position={"relative"}
+                top={"-3"}
+                right="3.5"
+                paddingX={"7px"}
+                paddingY="2px"
+              >
+                {notifications?.length}
+              </Badge>
             </MenuButton>
+            <MenuList px="2">
+              {notifications.map((notification) => {
+                return (
+                  <MenuItem
+                    _hover={{ bgColor: "teal.400", color: "white" }}
+                    display={"flex"}
+                    px="2"
+                    flexDirection={"column"}
+                    onClick={() => {
+                      console.log(
+                        "notifications----",
+                        selectedChat,
+                        notification.ChatId
+                      );
+                      setIsChatSelected(true);
+                      setSelectedChat(notification.chatId);
+                    }}
+                  >
+                    <Text fontSize={"lg"} fontWeight={"semibold"}>
+                      Message from{" "}
+                      {notification.chatId.isGroupChat
+                        ? notification.chatId.name
+                        : notification.sender.username}
+                    </Text>
+                    {/* <Text alignSelf={"self-start"}>{notification.content}</Text> */}
+                  </MenuItem>
+                );
+              })}
+            </MenuList>
           </Menu>
           <Menu>
-            <MenuButton as={Button} mx={"3"} rightIcon={<ChevronDownIcon />}>
-              <Avatar w="7" h="7" name={ourUser.username} src={ourUser.pic} />
+            <MenuButton
+              as={Button}
+              marginX={"3"}
+              rightIcon={<ChevronDownIcon />}
+            >
+              <Avatar w="7" h="7" name={ourUser?.username} src={ourUser?.pic} />
             </MenuButton>
 
             <MenuList>
@@ -117,7 +162,7 @@ const ChatHeader = ({ setSelectedUser }) => {
           </Menu>
         </div>
       </Box>
-      {otherUsers && (
+      {searchResultUsers && (
         <Drawer
           isOpen={isSearchIconClicked}
           onClose={() => {
@@ -143,7 +188,7 @@ const ChatHeader = ({ setSelectedUser }) => {
                   aria-label="Search database"
                   isLoading={isLoading}
                   onClick={() => {
-                    console.log("searcgUser", searchUsers);
+                    // console.log("searcgUser", searchUsers);
                     if (searchUsers == "") {
                       Toast({
                         status: "warning",
@@ -157,7 +202,7 @@ const ChatHeader = ({ setSelectedUser }) => {
                     }
                     getSearchedUsers(
                       searchUsers,
-                      setOtherUsers,
+                      setsearchResultUsers,
                       setIsLoading,
                       Toast
                     );
@@ -165,7 +210,7 @@ const ChatHeader = ({ setSelectedUser }) => {
                   icon={<SearchIcon />}
                 />
               </HStack>
-              {otherUsers.map((val) => (
+              {searchResultUsers.map((val) => (
                 <Button
                   key={val._id}
                   display={"flex"}
@@ -183,9 +228,17 @@ const ChatHeader = ({ setSelectedUser }) => {
                   onClick={() => {
                     setIsSearchIconClicked(false);
                     setSearchUsers("");
-                    setSelectedUser(val);
                     setClickedUser(val);
-                    handleClickFunction(val, Toast, setIsLoading);
+                    handleClickFunction(
+                      val,
+                      Toast,
+                      setIsLoading,
+                      setSelectedChat,
+                      setIsChatSelected,
+                      chats,
+                      setsearchResultUsers,
+                      setChats
+                    );
                   }}
                 >
                   <Box w="full" display={"flex"}>
@@ -207,7 +260,7 @@ const ChatHeader = ({ setSelectedUser }) => {
                   </Box>
                 </Button>
               ))}
-              {otherUsers.length == 0 && <Text>No user found.</Text>}
+              {searchResultUsers.length == 0 && <Text>No user found.</Text>}
             </DrawerBody>
           </DrawerContent>
         </Drawer>
@@ -215,89 +268,5 @@ const ChatHeader = ({ setSelectedUser }) => {
     </>
   );
 };
-
-async function handleClickFunction(val, Toast, setIsLoading) {
-  setIsLoading(true);
-  try {
-    const createNewChat = await fetch(
-      "http://localhost:5000/chatApp/api/v1/chats",
-      {
-        method: "POST",
-        body: JSON.stringify({
-          userId: val._id,
-        }),
-        headers: {
-          "content-type": "application/json",
-          authorization: localStorage.getItem("token"),
-        },
-      }
-    );
-    const createNewChatJson = await createNewChat.json();
-    console.log("createNewChatJson====", createNewChatJson);
-    setIsLoading(false);
-    if (createNewChat.status == 500) {
-      Toast({
-        status: "error",
-        duration: 3000,
-        title: "error",
-        isClosable: true,
-        description: "Internal server error",
-        position: "bottom",
-      });
-    }
-  } catch (err) {
-    console.log(err);
-    Toast({
-      status: "error",
-      duration: 3000,
-      title: "error",
-      isClosable: true,
-      description: "Internal server error",
-      position: "bottom",
-    });
-  }
-}
-async function getSearchedUsers(
-  searchUsers,
-  setOtherUsers,
-  setIsLoading,
-  Toast
-) {
-  try {
-    const ourUser = JSON.parse(localStorage.getItem("user"));
-    setIsLoading(true);
-    const response = await fetch(
-      `http://localhost:5000/chatApp/api/v1/users?search=${searchUsers}`,
-      {
-        headers: {
-          "content-type": "application/json",
-          authorization: localStorage.token,
-        },
-      }
-    );
-    const responseJson = await response.json();
-    console.log("before filter", responseJson);
-    let newArrData = [];
-    responseJson.map((val) => {
-      if (val._id !== ourUser._id) newArrData.push(val);
-    });
-    console.log(responseJson, newArrData);
-
-    setOtherUsers(responseJson);
-    setIsLoading(false);
-  } catch (err) {
-    console.log(err);
-    setIsLoading(false);
-    Toast({
-      status: "error",
-      duration: 3000,
-      title: "Error",
-      isClosable: true,
-      description: "Failed to load search results",
-      position: "bottom-left",
-    });
-    return;
-  }
-}
 
 export default ChatHeader;

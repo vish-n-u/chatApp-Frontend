@@ -12,7 +12,7 @@ import {
   useToast,
   Toast,
 } from "@chakra-ui/react";
-
+import { loginUrl } from "../../urls";
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -163,18 +163,15 @@ async function handleSubmit(
     setIsLoading(false);
     return;
   } else {
-    const data = await fetch(
-      "http://localhost:5000/chatApp/api/v1/users/login",
-      {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        mode: "cors",
-        body: JSON.stringify({
-          email: email,
-          password: password,
-        }),
-      }
-    );
+    const data = await fetch(loginUrl, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      mode: "cors",
+      body: JSON.stringify({
+        email: email,
+        password: password,
+      }),
+    });
     const dataJson = await data.json();
     console.log(dataJson, data);
     setIsLoading(false);
@@ -241,18 +238,15 @@ async function handleEnterAsGuest(
   setEmail("guestEmail@email.com");
   setPassword("1234");
   try {
-    const data = await fetch(
-      "http://localhost:5000/chatApp/api/v1/users/login",
-      {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        mode: "cors",
-        body: JSON.stringify({
-          email: "guestEmail@email.com",
-          password: "1234",
-        }),
-      }
-    );
+    const data = await fetch(loginUrl, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      mode: "cors",
+      body: JSON.stringify({
+        email: "guestEmail@email.com",
+        password: "1234",
+      }),
+    });
     const dataJson = await data.json();
     console.log(dataJson, data);
     localStorage.setItem("token", dataJson.token);
@@ -272,7 +266,7 @@ async function handleEnterAsGuest(
       status: "error",
       title: "Error",
       description: "Internal server error",
-      duration: 500,
+      duration: 5000,
     });
   }
 }

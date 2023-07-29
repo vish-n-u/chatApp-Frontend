@@ -17,8 +17,16 @@ import {
   Toast,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
+import handleSave from "./helperFunctions.js/alertModal";
+import { searchUserurl } from "../urls";
 
-function BasicUsage({ ourUser }) {
+function SearchModal({
+  ourUser,
+  chats,
+  setChats,
+  setSelectedChat,
+  setIsChatSelected,
+}) {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [groupName, setGroupName] = useState("");
   const [searchUser, setSearchUser] = useState("");
@@ -29,25 +37,24 @@ function BasicUsage({ ourUser }) {
   const [isLoading, setIsLoading] = useState(false);
   const Toast = useToast();
   useEffect(() => {
+    console.log("useEffect called");
     async function getSearchedUsers() {
       try {
         setIsLoading(true);
-        const response = await fetch(
-          `http://localhost:5000/chatApp/api/v1/users?search=${searchUser}`,
-          {
-            headers: {
-              "content-type": "application/json",
-              authorization: localStorage.token,
-            },
-          }
-        );
+        const response = await fetch(`${searchUserurl}${searchUser}`, {
+          headers: {
+            "content-type": "application/json",
+            authorization: localStorage.token,
+          },
+        });
         const responseJson = await response.json();
-        console.log("before filter", responseJson);
+        // console.log("before filter", responseJson);
         let newArrData = [];
         responseJson.map((val) => {
           if (val._id !== ourUser._id) newArrData.push(val);
         });
-        console.log(responseJson, newArrData);
+        // console.log(responseJson, newArrData);
+        // setIsChatSelected(true);
         setSearchUserResults(newArrData);
         setIsLoading(false);
       } catch (err) {
@@ -66,14 +73,14 @@ function BasicUsage({ ourUser }) {
     }
     getSearchedUsers();
   }, [searchUser]);
-  console.log(
-    "usersSelectedToBePartOfGrpChat===",
-    usersSelectedToBePartOfGrpChat
-  );
+  // console.log(
+  //   "usersSelectedToBePartOfGrpChat===",
+  //   usersSelectedToBePartOfGrpChat
+  // );
   return (
     <>
       <Button onClick={onOpen}>
-        <AddIcon mr="2" /> New Group Chat
+        <AddIcon mr="2" w={"10%"} /> New Group Chat
       </Button>
 
       <Modal isOpen={isOpen} onClose={onClose}>
@@ -93,6 +100,7 @@ function BasicUsage({ ourUser }) {
             <Text>Add users</Text>
             <Input
               type="text"
+              placeholder="Add names like john doe,jane smith etc...."
               value={searchUser}
               onChange={(e) => setSearchUser(e.target.value)}
             />
@@ -101,6 +109,7 @@ function BasicUsage({ ourUser }) {
                 usersSelectedToBePartOfGrpChat.map((user, index) => (
                   <Button
                     m="2"
+                    h="8"
                     key={user._id}
                     onClick={() => {
                       let arr = [...usersSelectedToBePartOfGrpChat];
@@ -115,7 +124,9 @@ function BasicUsage({ ourUser }) {
                         top={"2"}
                       />
                     }
-                    backgroundColor={"red.400"}
+                    backgroundColor={"purple.500"}
+                    textColor={"white"}
+                    _hover={{ bgColor: "purple.300" }}
                   >
                     <Avatar src={user.pic} w="6" h="6" mr="2" />
                     {user.username}
@@ -151,6 +162,7 @@ function BasicUsage({ ourUser }) {
                       }}
                       minH={"10"}
                       my={"2"}
+                      leftIcon={<Avatar src={user.pic} w="6" h="6" />}
                       backgroundColor={
                         selectedUser._id == user._id ? "teal.400" : ""
                       }
@@ -177,7 +189,14 @@ function BasicUsage({ ourUser }) {
                   usersSelectedToBePartOfGrpChat,
                   Toast,
                   onClose,
-                  setIsLoading
+                  setIsLoading,
+                  setChats,
+                  setSelectedChat,
+                  setSearchUser,
+                  setGroupName,
+                  setSearchUserResults,
+                  setUsersSelectedToBePartOfGrpChat,
+                  setIsChatSelected
                 );
               }}
             >
@@ -197,92 +216,4 @@ function isUserAlreadySelected(user, usersSelectedToBePartOfGrpChat) {
   return false;
 }
 
-async function handleSave(
-  groupName,
-  ourUser,
-  usersSelectedToBePartOfGrpChat,
-  Toast,
-  onClose,
-  setIsLoading
-) {
-  setIsLoading(true);
-  console.log(
-    "-----",
-    usersSelectedToBePartOfGrpChat,
-    usersSelectedToBePartOfGrpChat.length
-  );
-  try {
-    const arr = [];
-    arr.push(ourUser._id);
-    usersSelectedToBePartOfGrpChat.map((user) => {
-      arr.push(user._id);
-    });
-    if (groupName === "") {
-      return Toast({
-        status: "error",
-        duration: 3000,
-        title: "Error",
-        isClosable: true,
-        description: "Please enter group name",
-        position: "bottom-left",
-      });
-    }
-    if (usersSelectedToBePartOfGrpChat.length < 2) {
-      return Toast({
-        status: "error",
-        duration: 3000,
-        title: "Error",
-        isClosable: true,
-        description: "Please select atleast 2 users",
-        position: "bottom-left",
-      });
-    }
-    const newGrpChat = await fetch(
-      "http://localhost:5000/chatApp/api/v1/groupchats",
-      {
-        method: "POST",
-        headers: { authorization: localStorage.getItem("token") },
-        body: {
-          name: groupName,
-          users: arr,
-        },
-      }
-    );
-    const newGrpChatJson = await newGrpChat.json();
-    console.log(newGrpChatJson);
-    setIsLoading(false);
-    onClose();
-    if (newGrpChat.status === 201) {
-      Toast({
-        status: "success",
-        duration: 3000,
-        title: "Success",
-        isClosable: true,
-        description: "Groupchat created successfully",
-        position: "bottom-left",
-      });
-      return;
-    }
-    if (newGrpChat.status === 500) {
-      Toast({
-        status: "error",
-        duration: 3000,
-        title: "Error",
-        isClosable: true,
-        description: "Failed to create groupchat",
-        position: "bottom-left",
-      });
-      return;
-    }
-  } catch (err) {
-    console.log(err);
-    Toast({
-      status: "error",
-      duration: 3000,
-      title: "Error",
-      isClosable: true,
-      description: "Failed to create groupchat",
-    });
-  }
-}
-export default BasicUsage;
+export default SearchModal;

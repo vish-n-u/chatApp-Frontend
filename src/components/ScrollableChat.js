@@ -1,0 +1,298 @@
+import { ArrowForwardIcon } from "@chakra-ui/icons";
+import {
+  Avatar,
+  Box,
+  Button,
+  Image,
+  Input,
+  Spinner,
+  Text,
+  Tooltip,
+  useToast,
+} from "@chakra-ui/react";
+import React, { useContext } from "react";
+import { useState, useEffect } from "react";
+import userContext from "../context";
+import ScrollableFeed from "react-scrollable-feed";
+import { postMessagesUrl } from "../urls";
+const ScrollableChat = ({
+  isChatSelected,
+  setIsChatSelected,
+  selectedChat,
+  setSelectedChat,
+  messages,
+  setMessages,
+  areMessagesloading,
+  setAreMessagesLoading,
+  newMessage,
+  setNewMessage,
+  socket,
+  isOtherUserTyping,
+  setIsOtherUserTyping,
+}) => {
+  const [newMessageString, setNewMessageString] = useState("");
+
+  const Toast = useToast();
+  const ourUser = useContext(userContext);
+
+  console.log(
+    "messages:---",
+    isOtherUserTyping,
+    messages,
+    messages.length,
+    areMessagesloading
+    // View
+  );
+  useEffect(() => {
+    socket.on("typing", (id) => {
+      console.log("typing", id);
+      if (!isOtherUserTyping && id == selectedChat._id)
+        setIsOtherUserTyping(true);
+    });
+    socket.on("stop typing", (id) => {
+      console.log(id, "stop typing");
+      if (isOtherUserTyping && id == selectedChat._id) {
+        console.log("is other user typing", isOtherUserTyping);
+        setIsOtherUserTyping(false);
+      }
+    });
+  });
+
+  console.log("isOtherUserTyping====", isOtherUserTyping);
+  return (
+    <Box //messages inside chat box and input bar
+      mt="3"
+      h="90%"
+      w="95%"
+      display={"flex"}
+      flexDirection={"column"}
+      // alignContent={"end"}
+    >
+      <ScrollableFeed>
+        <Box
+          w="100%"
+          //   m="3"
+          h="fit-content"
+          minH={"100%"}
+          display={"flex"}
+          flexWrap={"wrap"}
+          flexDirection={"column"}
+          justifyContent={"end"}
+          justifyItems={"center"}
+          backgroundColor={"gray.200"}
+        >
+          {!areMessagesloading
+            ? messages.map((message, index) => {
+                return (
+                  <Box // texts are styled here
+                    w="100%"
+                    // my="2"
+                    px="4"
+                    p="2"
+                    key={message._id}
+                    display={"flex"}
+                    flexDirection={
+                      message.sender._id === ourUser._id ? "row-reverse" : "row"
+                    }
+                  >
+                    {(message.sender._id !==
+                      messages?.[index + 1]?.sender._id ||
+                      index === messages.length - 1) &&
+                    message.sender._id !== ourUser._id ? (
+                      <Tooltip label={message.sender.username}>
+                        <Avatar
+                          w="7"
+                          h="7"
+                          mr="2"
+                          rounded={"full"}
+                          src={message.sender.pic}
+                          name={message.sender.username}
+                          alt="nope.jpeg"
+                        />
+                      </Tooltip>
+                    ) : null}
+                    <Text
+                      w="fit-content"
+                      maxW={"50%"}
+                      p="1"
+                      px="5"
+                      color="white"
+                      bgColor={
+                        message.sender._id === ourUser._id
+                          ? "blue.500"
+                          : "green.500"
+                      }
+                      roundedLeft={"full"}
+                      roundedRight={"full"}
+                    >
+                      {message.content}
+                    </Text>
+                  </Box>
+                );
+              })
+            : isChatSelected && (
+                <Spinner
+                  thickness="4px"
+                  speed="0.65s"
+                  emptyColor="gray.200"
+                  color="blue.500"
+                  size="xl"
+                  alignSelf={"center"}
+                  justifySelf={"center"}
+                ></Spinner>
+              )}
+
+          {isOtherUserTyping && (
+            <Box display={"flex"} bgColor={"gray.200"}>
+              <iframe
+                src="https://giphy.com/embed/X9jcycOeoT14CIKUuC"
+                width="80"
+                height="80"
+                frameBorder="0"
+                class="giphy-embed"
+                allowFullScreen
+              ></iframe>
+              <p style={{ width: "20px", height: "20px" }}>
+                <a
+                  style={{ backgroundColor: "blue" }}
+                  href="https://giphy.com/stickers/savage-typing-text-bubble-X9jcycOeoT14CIKUuC"
+                ></a>
+              </p>
+            </Box>
+          )}
+        </Box>
+      </ScrollableFeed>
+
+      <Box display={"flex"} justifyContent={"center"} my="4" alignItems={"end"}>
+        <Input // input to add messages
+          mb="3"
+          placeholder="write message here..."
+          border={"1px"}
+          borderRightRadius={"full"}
+          borderLeftRadius={"full"}
+          type="text"
+          value={newMessageString}
+          onChange={(e) => {
+            setNewMessageString(e.target.value);
+            // if (!isTyping) setIsTyping(true);
+            socket.emit("typing", selectedChat._id);
+            let currTime = new Date().getTime();
+            var varTime = new Date().getTime();
+
+            setTimeout(() => {
+              console.log("currTime====", currTime, varTime);
+              var newtime = new Date().getTime();
+
+              if (newtime - currTime >= 3000) {
+                // if (isTyping) setIsTyping(false);
+                socket.emit("stop typing", selectedChat._id);
+              }
+              return;
+            }, 3000);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              if (newMessageString === "") return;
+              setNewMessage(newMessageString);
+              if (isOtherUserTyping) setIsOtherUserTyping(false);
+              sendMessage(
+                newMessageString,
+                messages,
+                setMessages,
+                setNewMessageString,
+                setAreMessagesLoading,
+                selectedChat,
+                Toast,
+                socket
+              );
+            }
+          }}
+          w="80%"
+          overflowX={"scroll"}
+          _focus={{ bgColor: "white" }}
+        />
+        <Button
+          mb="3"
+          isDisabled={newMessageString === ""}
+          onClick={() => {
+            setNewMessage(newMessageString);
+            // Socket.emit("new message",)
+            if (isOtherUserTyping) setIsOtherUserTyping(false);
+            sendMessage(
+              newMessageString,
+              messages,
+              setMessages,
+              setNewMessageString,
+              setAreMessagesLoading,
+              selectedChat,
+              Toast,
+              socket
+            );
+          }}
+        >
+          <ArrowForwardIcon />
+        </Button>
+      </Box>
+    </Box>
+  );
+};
+async function sendMessage(
+  content,
+  messages,
+  setMessages,
+  setNewMessageString,
+  setAreMessagesLoading,
+  selectedChat,
+  Toast,
+  socket
+) {
+  try {
+    // setAreMessagesLoading(true);
+    const data = await fetch(postMessagesUrl, {
+      method: "POST",
+      body: JSON.stringify({ chatId: selectedChat._id, content }),
+      headers: {
+        "content-type": "application/json",
+        authorization: localStorage.getItem("token"),
+      },
+    });
+    const dataJson = await data.json();
+
+    // setAreMessagesLoading(false);
+    setNewMessageString("");
+    console.log(dataJson, data);
+    if (data.status == 200) {
+      setMessages([...messages, dataJson.message]);
+      socket.emit("new message", dataJson.message);
+      return;
+    }
+    if (data.status !== 500) {
+      Toast({
+        status: "error",
+        title: "error",
+        descritption: dataJson.messages,
+        duration: 3000,
+      });
+      return;
+    } else {
+      Toast({
+        status: "error",
+        title: "error",
+        descritption: "Internal server error",
+        duration: 3000,
+      });
+      return;
+    }
+  } catch (err) {
+    console.log(err);
+    Toast({
+      status: "error",
+      title: "error",
+      descritption: "Internal server error",
+      duration: 3000,
+    });
+    return;
+  }
+}
+
+export default ScrollableChat;

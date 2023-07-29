@@ -9,6 +9,7 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { useToast } from "@chakra-ui/react";
+import { registerUrl } from "../../urls";
 
 const Register = () => {
   const [name, setName] = useState("");
@@ -222,20 +223,17 @@ async function handleSubmit(
     setLoading(false);
     return;
   } else {
-    const data = await fetch(
-      "http://localhost:5000/chatApp/api/v1/users/register",
-      {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        mode: "cors",
-        body: JSON.stringify({
-          username: name,
-          email: email,
-          password: password,
-          pic: picture,
-        }),
-      }
-    );
+    const data = await fetch(registerUrl, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      mode: "cors",
+      body: JSON.stringify({
+        username: name,
+        email: email,
+        password: password,
+        pic: picture,
+      }),
+    });
     const dataJson = await data.json();
     setLoading(false);
     console.log(dataJson, data);
