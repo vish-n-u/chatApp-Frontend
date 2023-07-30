@@ -16,6 +16,33 @@ import { useState, useEffect } from "react";
 import userContext from "../context";
 import ScrollableFeed from "react-scrollable-feed";
 import { postMessagesUrl } from "../urls";
+import * as aesJS from "aes-js";
+
+function encryptContent(content) {
+  let key = process.env.REACT_APP_encryptionKey || [
+    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+  ];
+  const contentBytes = aesJS.utils.utf8.toBytes(content);
+  const aesCtr = new aesJS.ModeOfOperation.ctr(key, new aesJS.Counter(5));
+  const encryptedBytes = aesCtr.encrypt(contentBytes);
+
+  const encryptedHex = aesJS.utils.hex.fromBytes(encryptedBytes);
+  return encryptedHex;
+}
+
+function decryptedContent(content) {
+  let key = process.env.REACT_APP_encryptionKey || [
+    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+  ];
+
+  const encryptedBytes = aesJS.utils.hex.toBytes(content);
+  const aesCtr = new aesJS.ModeOfOperation.ctr(key, new aesJS.Counter(5));
+  const decryptedBytes = aesCtr.decrypt(encryptedBytes);
+
+  // Convert our bytes back into text
+  const decryptedText = aesJS.utils.utf8.fromBytes(decryptedBytes);
+  return decryptedText;
+}
 const ScrollableChat = ({
   isChatSelected,
   setIsChatSelected,
@@ -72,6 +99,18 @@ const ScrollableChat = ({
       // alignContent={"end"}
     >
       <ScrollableFeed>
+        <Box w="full" display={"flex"} justifyContent={"center"}>
+          <Text
+            p="2"
+            bgColor={"gray.400"}
+            color={"white"}
+            position={"relative"}
+            rounded={"lg"}
+            top="12"
+          >
+            Messages are end-to-end encrypted
+          </Text>
+        </Box>
         <Box
           w="100%"
           //   m="3"
@@ -125,10 +164,9 @@ const ScrollableChat = ({
                           ? "blue.500"
                           : "green.500"
                       }
-                      roundedLeft={"full"}
-                      roundedRight={"full"}
+                      rounded={"lg"}
                     >
-                      {message.content}
+                      {decryptedContent(message.content)}
                     </Text>
                   </Box>
                 );
@@ -255,11 +293,15 @@ async function sendMessage(
   Toast,
   socket
 ) {
+  const encryptedContent = encryptContent(content);
   try {
     // setAreMessagesLoading(true);
     const data = await fetch(postMessagesUrl, {
       method: "POST",
-      body: JSON.stringify({ chatId: selectedChat._id, content }),
+      body: JSON.stringify({
+        chatId: selectedChat._id,
+        content: encryptedContent,
+      }),
       headers: {
         "content-type": "application/json",
         authorization: localStorage.getItem("token"),

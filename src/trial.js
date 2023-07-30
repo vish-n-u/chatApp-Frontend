@@ -1,55 +1,29 @@
-const CryptoJS = require("crypto-js");
+var aesjs = require("aes-js");
+var key = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
 
-var JsonFormatter = {
-  stringify: function (cipherParams) {
-    // create json object with ciphertext
-    var jsonObj = { ct: cipherParams.ciphertext.toString(CryptoJS.enc.Base64) };
+// Convert text to bytes
+var text = "Text may be any length you wish, no padding is required.";
+var textBytes = aesjs.utils.utf8.toBytes(text);
 
-    // optionally add iv or salt
-    if (cipherParams.iv) {
-      jsonObj.iv = cipherParams.iv.toString();
-    }
+// The counter is optional, and if omitted will begin at 1
+var aesCtr = new aesjs.ModeOfOperation.ctr(key, new aesjs.Counter(5));
+var encryptedBytes = aesCtr.encrypt(textBytes);
 
-    if (cipherParams.salt) {
-      jsonObj.s = cipherParams.salt.toString();
-    }
+// To print or store the binary data, you may convert it to hex
+var encryptedHex = aesjs.utils.hex.fromBytes(encryptedBytes);
+console.log(encryptedHex);
+// "a338eda3874ed884b6199150d36f49988c90f5c47fe7792b0cf8c7f77eeffd87
+//  ea145b73e82aefcf2076f881c88879e4e25b1d7b24ba2788"
 
-    // stringify json object
-    return JSON.stringify(jsonObj);
-  },
-  parse: function (jsonStr) {
-    // parse json string
-    var jsonObj = JSON.parse(jsonStr);
+// When ready to decrypt the hex string, convert it back to bytes
+var encryptedBytes2 = aesjs.utils.hex.toBytes(encryptedHex);
 
-    // extract ciphertext from json object, and create cipher params object
-    var cipherParams = CryptoJS.lib.CipherParams.create({
-      ciphertext: CryptoJS.enc.Base64.parse(jsonObj.ct),
-    });
+// The counter mode of operation maintains internal state, so to
+// decrypt a new instance must be instantiated.
+var aesCtr = new aesjs.ModeOfOperation.ctr(key, new aesjs.Counter(5));
+var decryptedBytes = aesCtr.decrypt(encryptedBytes2);
 
-    // optionally extract iv or salt​
-    if (jsonObj.iv) {
-      cipherParams.iv = CryptoJS.enc.Hex.parse(jsonObj.iv);
-    }
-
-    if (jsonObj.s) {
-      cipherParams.salt = CryptoJS.enc.Hex.parse(jsonObj.s);
-    }
-
-    return cipherParams;
-  },
-};
-
-var encrypted = CryptoJS.AES.encrypt("Message", "Secret Passphrase");
-
-encrypted >
-  {
-    ct: "tZ4MsEnfbcDOwqau68aOrQ==",
-    iv: "8a8c8fd8fe33743d3638737ea4a00698",
-    s: "ba06373c8f57179c",
-  };
-
-var decrypted = CryptoJS.AES.decrypt(encrypted, "Secret Passphrase", {
-  format: JsonFormatter,
-});
-
-console.log(decrypted.toString(CryptoJS.enc.Utf8));
+// Convert our bytes back into text
+var decryptedText = aesjs.utils.utf8.fromBytes(decryptedBytes);
+console.log(decryptedText);
+// "Text may be any length you wish, no padding is required."
