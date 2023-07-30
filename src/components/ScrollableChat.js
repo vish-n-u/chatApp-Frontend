@@ -96,10 +96,16 @@ const ScrollableChat = ({
       w="95%"
       display={"flex"}
       flexDirection={"column"}
+
       // alignContent={"end"}
     >
       <ScrollableFeed>
-        <Box w="full" display={"flex"} justifyContent={"center"}>
+        <Box
+          w="full"
+          bgColor={"gray.200"}
+          display={"flex"}
+          justifyContent={"center"}
+        >
           <Text
             p="2"
             bgColor={"gray.400"}
