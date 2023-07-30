@@ -86,7 +86,7 @@ const ChatHeader = ({
           </Tooltip>
         </div>
         <span style={{ textAlign: "center", fontSize: "20px" }}>MeChat!</span>
-        <div>
+        <Box display={"flex"} flexDirection={{ md: "row", base: "column" }}>
           <Menu>
             <MenuButton marginX={"3"}>
               <BellIcon w={"7"} h={"10"} color={"gray.800"} />
@@ -137,7 +137,7 @@ const ChatHeader = ({
           <Menu>
             <MenuButton
               as={Button}
-              marginX={"3"}
+              marginX={"1"}
               rightIcon={<ChevronDownIcon />}
             >
               <Avatar w="7" h="7" name={ourUser?.username} src={ourUser?.pic} />
@@ -160,7 +160,7 @@ const ChatHeader = ({
               </MenuItem>
             </MenuList>
           </Menu>
-        </div>
+        </Box>
       </Box>
       {searchResultUsers && (
         <Drawer

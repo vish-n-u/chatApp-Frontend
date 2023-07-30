@@ -32,8 +32,6 @@ const ScrollableChat = ({
   setIsOtherUserTyping,
 }) => {
   const [newMessageString, setNewMessageString] = useState("");
-  const [currTime, setTime] = useState(0);
-  const [stillTyping, setStillTyping] = useState(false);
   const Toast = useToast();
   const ourUser = useContext(userContext);
   const [currTimeRef, setCurrTimeRef] = useState({});
@@ -51,16 +49,14 @@ const ScrollableChat = ({
       console.log("typing", id);
       if (!isOtherUserTyping && id == selectedChat._id) {
         setIsOtherUserTyping(true);
-        setStillTyping(true);
       }
     });
     socket.on("stop typing", (id) => {
       setTimeout(() => {
-        if (isOtherUserTyping && id == selectedChat._id && !stillTyping) {
+        if (isOtherUserTyping && id == selectedChat._id) {
           console.log("is other user typing", isOtherUserTyping);
           setIsOtherUserTyping(false);
         }
-        setStillTyping(false);
       }, 1000);
     });
   });
@@ -195,8 +191,9 @@ const ScrollableChat = ({
                 newtime - currTimeRef.current > 3000
               );
 
-              if (newtime - currTimeRef.current > 3000) {
+              if (newtime - currTimeRef.current >= 3000) {
                 // /if (isTyping) setIsTyping(false);
+                console.log("reached stop typing");
                 socket.emit("stop typing", selectedChat._id);
               }
               return;
