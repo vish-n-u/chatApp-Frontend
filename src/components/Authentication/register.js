@@ -7,11 +7,12 @@ import {
   Button,
   FormErrorMessage,
   VStack,
+  useToast,
 } from "@chakra-ui/react";
-import { useToast } from "@chakra-ui/react";
+
 import { registerUrl } from "../../urls";
 
-const Register = () => {
+const Register = ({ setIndex }) => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -169,7 +170,9 @@ const Register = () => {
             setError,
             triedEmail,
             setTriedEmail,
-            setLoading
+            setLoading,
+            setIndex,
+            Toast
           );
         }}
       >
@@ -194,7 +197,9 @@ async function handleSubmit(
   setError,
   triedEmail,
   setTriedEmail,
-  setLoading
+  setLoading,
+  setIndex,
+  Toast
 ) {
   setLoading(true);
   if (name === "") {
@@ -238,7 +243,13 @@ async function handleSubmit(
     setLoading(false);
     console.log(dataJson, data);
     if (data.status === 201) {
-      alert("success");
+      Toast({
+        status: "success",
+        title: "Registered successfully",
+        duration: 3000,
+      });
+
+      setIndex(0);
     } else if (data.status === 400) {
       if (dataJson.message === "email already exists") {
         setError({ ...error, email: "Email already exists try logging in!" });
@@ -249,7 +260,12 @@ async function handleSubmit(
       }
     } else if (data.status === 500) {
       setLoading(false);
-      alert("Internal server errr, please refresh and retry!");
+      Toast({
+        status: "error",
+        title: "Internal server error",
+        duration: 3000,
+      });
+
       return;
     }
   }

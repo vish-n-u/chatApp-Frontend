@@ -314,27 +314,29 @@ function ChatDataModal({
               <ModalCloseButton />
               <ModalBody></ModalBody>
               <ModalFooter alignSelf={"end"}>
-                <Button
-                  mx="2"
-                  colorScheme="red"
-                  onClick={() => {
-                    if (ourUser._id !== selectedChat.admin) {
-                      updateGroupMembers(
-                        ourUser,
-                        ourUser._id,
-                        selectedChat,
-                        setSelectedChat,
-                        Toast,
-                        setIsLoading,
-                        setIsChatSelected,
-                        "remove"
-                      );
-                      onClose();
-                    }
-                  }}
-                >
-                  {ourUser._id == selectedChat.admin && "Leave Group"}
-                </Button>
+                {ourUser._id !== selectedChat.admin && (
+                  <Button
+                    mx="2"
+                    colorScheme="red"
+                    onClick={() => {
+                      if (ourUser._id !== selectedChat.admin) {
+                        updateGroupMembers(
+                          ourUser,
+                          ourUser._id,
+                          selectedChat,
+                          setSelectedChat,
+                          Toast,
+                          setIsLoading,
+                          setIsChatSelected,
+                          "remove"
+                        );
+                        onClose();
+                      }
+                    }}
+                  >
+                    Leave Group
+                  </Button>
+                )}
                 <Button colorScheme="blue" onClick={onClose}>
                   Cancel
                 </Button>

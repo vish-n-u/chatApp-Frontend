@@ -8,9 +8,10 @@ import {
   Spinner,
   Text,
   Tooltip,
+  useTimeout,
   useToast,
 } from "@chakra-ui/react";
-import React, { useContext } from "react";
+import React, { useContext, useRef } from "react";
 import { useState, useEffect } from "react";
 import userContext from "../context";
 import ScrollableFeed from "react-scrollable-feed";
@@ -31,9 +32,11 @@ const ScrollableChat = ({
   setIsOtherUserTyping,
 }) => {
   const [newMessageString, setNewMessageString] = useState("");
-
+  const [currTime, setTime] = useState(0);
+  const [stillTyping, setStillTyping] = useState(false);
   const Toast = useToast();
   const ourUser = useContext(userContext);
+  const [currTimeRef, setCurrTimeRef] = useState({});
 
   console.log(
     "messages:---",
@@ -46,15 +49,19 @@ const ScrollableChat = ({
   useEffect(() => {
     socket.on("typing", (id) => {
       console.log("typing", id);
-      if (!isOtherUserTyping && id == selectedChat._id)
+      if (!isOtherUserTyping && id == selectedChat._id) {
         setIsOtherUserTyping(true);
+        setStillTyping(true);
+      }
     });
     socket.on("stop typing", (id) => {
-      console.log(id, "stop typing");
-      if (isOtherUserTyping && id == selectedChat._id) {
-        console.log("is other user typing", isOtherUserTyping);
-        setIsOtherUserTyping(false);
-      }
+      setTimeout(() => {
+        if (isOtherUserTyping && id == selectedChat._id && !stillTyping) {
+          console.log("is other user typing", isOtherUserTyping);
+          setIsOtherUserTyping(false);
+        }
+        setStillTyping(false);
+      }, 1000);
     });
   });
 
@@ -176,15 +183,20 @@ const ScrollableChat = ({
             setNewMessageString(e.target.value);
             // if (!isTyping) setIsTyping(true);
             socket.emit("typing", selectedChat._id);
-            let currTime = new Date().getTime();
-            var varTime = new Date().getTime();
+
+            const currTime = new Date().getTime();
+            currTimeRef.current = currTime;
 
             setTimeout(() => {
-              console.log("currTime====", currTime, varTime);
-              var newtime = new Date().getTime();
+              let newtime = new Date().getTime();
+              console.log(
+                "currTimeRef",
+                newtime - currTimeRef.current,
+                newtime - currTimeRef.current > 3000
+              );
 
-              if (newtime - currTime >= 3000) {
-                // if (isTyping) setIsTyping(false);
+              if (newtime - currTimeRef.current > 3000) {
+                // /if (isTyping) setIsTyping(false);
                 socket.emit("stop typing", selectedChat._id);
               }
               return;

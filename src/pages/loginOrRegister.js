@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Box,
   Text,
@@ -14,6 +14,10 @@ import Login from "../components/Authentication/login";
 import Register from "../components/Authentication/register";
 
 const LoginPage = () => {
+  const [index, setIndex] = useState(0);
+  function handleTabsChange(index) {
+    setIndex(index);
+  }
   return (
     <div className="App">
       <Container w="100%">
@@ -46,7 +50,12 @@ const LoginPage = () => {
           justifyContent="space-between"
           p="2"
         >
-          <Tabs variant="soft-rounded" w="100%">
+          <Tabs
+            index={index}
+            onChange={handleTabsChange}
+            variant="soft-rounded"
+            w="100%"
+          >
             <TabList w="100%">
               <Tab width="50%" color="black">
                 Login
@@ -60,7 +69,7 @@ const LoginPage = () => {
                 <Login />
               </TabPanel>
               <TabPanel>
-                <Register />
+                <Register setIndex={setIndex} />
               </TabPanel>
             </TabPanels>
           </Tabs>
