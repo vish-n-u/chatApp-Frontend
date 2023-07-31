@@ -11,7 +11,7 @@ export async function handleClickFunction(
   setChats
 ) {
   setIsLoading(true);
-  console.log(chats, "chats in ChatHEader on click");
+ 
   try {
     for (let x = 0; x < chats.length; x++) {
       for (let y = 0; y < chats[x].users.length; y++) {

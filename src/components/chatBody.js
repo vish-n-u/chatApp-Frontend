@@ -15,8 +15,6 @@ const ChatBody = ({
   setIsChatSelected,
   selectedChat,
   setSelectedChat,
-  setremovedUser,
-  removedUser,
   notifications,
   setNotifications,
   setFetchAgain,
@@ -126,78 +124,75 @@ const ChatBody = ({
   });
 
   return (
-    !removedUser && (
-      <Box
-        hideBelow={!isChatSelected && "md"}
-        display={"flex"}
-        flexDir={"column"}
-        alignItems={"center"}
-        backgroundColor="white"
-        borderRadius={"md"}
-        m={"5"}
-        height="90% "
-        w={{ base: "95%", md: "65%" }}
-      >
-        {isChatSelected && (
-          <>
-            <Box //header of chatbox
-              w="full"
-              display={"flex"}
-              justifyContent={"space-between"}
-              mt="4"
-              mx="2"
+    <Box
+      hideBelow={!isChatSelected && "md"}
+      display={"flex"}
+      flexDir={"column"}
+      alignItems={"center"}
+      backgroundColor="white"
+      borderRadius={"md"}
+      m={"5"}
+      height="90% "
+      w={{ base: "95%", md: "65%" }}
+    >
+      {isChatSelected && (
+        <>
+          <Box //header of chatbox
+            w="full"
+            display={"flex"}
+            justifyContent={"space-between"}
+            mt="4"
+            mx="2"
+          >
+            <Button
+              ml="3"
+              onClick={() => {
+                setSelectedChat({});
+                setIsChatSelected(false);
+              }}
+              hideFrom={"md"}
             >
-              <Button
-                ml="3"
-                onClick={() => {
-                  setSelectedChat({});
-                  setIsChatSelected(false);
-                }}
-                hideFrom={"md"}
-              >
-                <ArrowBackIcon />
-              </Button>
-              <Text
-                ml="3"
-                fontSize={"xl"}
-                fontWeight={"semibold"}
-                fontFamily={"cursive"}
-              >
-                {selectedChat.isGroupChat
-                  ? selectedChat.name
-                  : selectedChat.users[0]._id == ourUser._id
-                  ? selectedChat.users[1].username
-                  : selectedChat.users[0].username}
-              </Text>
+              <ArrowBackIcon />
+            </Button>
+            <Text
+              ml="3"
+              fontSize={"xl"}
+              fontWeight={"semibold"}
+              fontFamily={"cursive"}
+            >
+              {selectedChat.isGroupChat
+                ? selectedChat.name
+                : selectedChat.users[0]._id == ourUser._id
+                ? selectedChat.users[1].username
+                : selectedChat.users[0].username}
+            </Text>
 
-              <ChatDataModal
-                selectedChat={selectedChat}
-                setSelectedChat={setSelectedChat}
-                ourUser={ourUser}
-                Toast={Toast}
-                setremovedUser={setremovedUser}
-                setIsChatSelected={setIsChatSelected}
-              />
-            </Box>
-            <ScrollableChat
-              isChatSelected={isChatSelected}
-              setIsChatSelected={setIsChatSelected}
+            <ChatDataModal
               selectedChat={selectedChat}
               setSelectedChat={setSelectedChat}
-              messages={messages}
-              setMessages={setMessages}
-              areMessagesloading={areMessagesloading}
-              setAreMessagesLoading={setAreMessagesLoading}
-              newMessage={newMessage}
-              setNewMessage={setNewMessage}
-              socket={socket}
-              isOtherUserTyping={isOtherUserTyping}
-              setIsOtherUserTyping={setIsOtherUserTyping}
+              ourUser={ourUser}
+              Toast={Toast}
+              setIsChatSelected={setIsChatSelected}
             />
-          </>
-        )}
-      </Box>
-    )
+          </Box>
+          <ScrollableChat
+            isChatSelected={isChatSelected}
+            setIsChatSelected={setIsChatSelected}
+            selectedChat={selectedChat}
+            setSelectedChat={setSelectedChat}
+            messages={messages}
+            setMessages={setMessages}
+            areMessagesloading={areMessagesloading}
+            setAreMessagesLoading={setAreMessagesLoading}
+            newMessage={newMessage}
+            setNewMessage={setNewMessage}
+            socket={socket}
+            isOtherUserTyping={isOtherUserTyping}
+            setIsOtherUserTyping={setIsOtherUserTyping}
+          />
+        </>
+      )}
+    </Box>
   );
 };
 

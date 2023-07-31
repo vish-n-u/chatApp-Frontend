@@ -5,39 +5,38 @@ import ChatUser from "../components/chatUsers";
 import ChatBody from "../components/chatBody";
 import userContext from "../context";
 import { getChatsurl } from "../urls";
+import "../App.css";
 const Chat = () => {
-  const [selectedChat, setSelectedChat] = useState({}); // keeps track of current selected chat
-  const [isChatSelected, setIsChatSelected] = useState(false); // to check whether a chat is selected
-  const [chats, setChats] = useState([-1]); // stores the chats of the selected chat
-  const [removedUser, setremovedUser] = useState(false);
-  const [notifications, setNotifications] = useState([]); // stores the notifications
-  const [fetchAgain, setFetchAgain] = useState(false); // to make a fetch request of chats
-  const [updatedContextVal, setUpdatedContextVal] = useState({}); // to update the context value
+  const [selectedChat, setSelectedChat] = useState({});
+  const [isChatSelected, setIsChatSelected] = useState(false);
+  const [chats, setChats] = useState([-1]); // its -1 cause chats might be empty even after fetching
+  const [notifications, setNotifications] = useState([]);
+  const [fetchAgain, setFetchAgain] = useState(false); // allows us to fetch chatData on command
+  const [updatedContextVal, setUpdatedContextVal] = useState({});
   const ourUser = useContext(userContext);
 
-  // to fetch the chats again when a different chat is selected
   useEffect(() => {
     getUserChats();
   }, [selectedChat]);
-  // to fetch the chats again when needed (mostly when a new notification is recieved)
   useEffect(() => {
     if (fetchAgain) {
       getUserChats();
       setFetchAgain(false);
     }
   }, [fetchAgain]);
-
   useEffect(() => {
-    // asynchronous way of parsing the json stored in localstorage to get current user Info (ourUser)
     async function update() {
+      // updates the userContext with parsed JSON Object
       let response = await JSON.parse(localStorage.getItem("user"));
       setUpdatedContextVal(response);
     }
     update();
   }, []);
-
-  // gets ourUsers chat data
   async function getUserChats() {
+    /* get ourusers (logged in user) all chatData if successful 
+     @returns {Object} - the return object has e2 keys pathSpecified and userChat
+     pathSpecified is populated data which is set in chats
+    * */
     const response = await fetch(getChatsurl, {
       headers: {
         "content-type": "application/json",
@@ -47,15 +46,21 @@ const Chat = () => {
     const responseJson = await response.json();
 
     setChats(responseJson.pathSpecified);
-    setremovedUser(false);
+
     setFetchAgain(false);
   }
-
+  console.log(
+    "selection of chat",
+    chats,
+    chats[0] !== -1,
+    ourUser,
+    Object.keys(updatedContextVal).length
+  );
   return (
-    // makes sure that the other components are rendered only after the chats and ourUSer has been updated
+    // ensures that chat is fetched and updatedContextVal and only then the components are loaded
     chats[0] !== -1 &&
     Object.keys(updatedContextVal).length > 0 && (
-      <Box bg={"blue.100"}>
+      <Box className="App">
         <userContext.Provider value={updatedContextVal}>
           <ChatHeader
             selectedChat={selectedChat}
@@ -74,8 +79,6 @@ const Chat = () => {
               setSelectedChat={setSelectedChat}
               chats={chats}
               setChats={setChats}
-              removedUser={removedUser}
-              setremovedUser={setremovedUser}
             />
             <ChatBody
               isChatSelected={isChatSelected}
@@ -83,8 +86,6 @@ const Chat = () => {
               selectedChat={selectedChat}
               setSelectedChat={setSelectedChat}
               chats={chats}
-              removedUser={removedUser}
-              setremovedUser={setremovedUser}
               notifications={notifications}
               setNotifications={setNotifications}
               setFetchAgain={setFetchAgain}

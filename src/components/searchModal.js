@@ -79,10 +79,7 @@ function SearchModal({
   // );
   return (
     <>
-      <Button onClick={onOpen}>
-        <AddIcon mr="2" w={"10%"} /> New Group Chat
-      </Button>
-
+      <AddIcon mr="2" w={"10%"} onClick={onOpen} /> New Group Chat
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
         <ModalContent>

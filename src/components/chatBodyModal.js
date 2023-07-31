@@ -26,7 +26,6 @@ function ChatDataModal({
   ourUser,
   Toast,
   setIsChatSelected,
-  setremovedUser,
 }) {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [newGroupName, setNewGroupName] = useState("");

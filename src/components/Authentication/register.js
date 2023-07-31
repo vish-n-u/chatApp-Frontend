@@ -28,8 +28,10 @@ const Register = ({ setIndex }) => {
     picture: false,
   });
   const [triedEmail, setTriedEmail] = useState([]);
+
   async function handlePic(pic) {
-    console.log(pic, "///");
+    // A function to store the userDisplay pic in cloudinary
+    // if successfull sets the response from the url to the picture variable else throws an error toast
     try {
       setLoading(true);
       if (typeof pic == "undefined") {
@@ -41,6 +43,7 @@ const Register = ({ setIndex }) => {
         });
         return;
       } else if (pic.type == "image/jpeg" || pic.type == "image/png") {
+        // method to store picture in cloudinary
         const data = new FormData();
         data.append("file", pic);
         data.append("upload_preset", "chatApp");
@@ -53,7 +56,7 @@ const Register = ({ setIndex }) => {
           }
         );
         const responseDataJson = await responseData.json();
-        console.log("success", responseDataJson, responseData);
+        // console.log("success", responseDataJson, responseData);
         setPicture(responseDataJson.url.toString());
         setLoading(false);
       } else {
@@ -181,7 +184,13 @@ const Register = ({ setIndex }) => {
     </VStack>
   );
 };
-
+/**
+ * Registers in the Guest User and handles success and failure scenarios.
+ *@returns {Object} An object containing a message of the error (in case of failure) .
+ * If register is successful, a success Toast is displayed.
+ * If register fails because of some err, the err is added into th err State variable.
+ *
+ */
 async function handleSubmit(
   name,
   setName,
@@ -202,19 +211,22 @@ async function handleSubmit(
   Toast
 ) {
   setLoading(true);
+  // check if name is empty , if yes then show err
   if (name === "") {
     setError({ ...error, name: true });
-    console.log("Reached before else");
     setLoading(false);
     return;
-  } else if (
+  }
+  // check if email is incorrect or check whether it was tried earlier,if yes then show err
+  else if (
     email === "" ||
     /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(email) === false
   ) {
     setError({ ...error, email: true });
     setLoading(false);
     return;
-  } else if (password === "") {
+  } // same as above
+  else if (password === "") {
     setError({ ...error, password: true });
     setLoading(false);
     return;
@@ -228,6 +240,7 @@ async function handleSubmit(
     setLoading(false);
     return;
   } else {
+    // make a request to the server
     const data = await fetch(registerUrl, {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -241,7 +254,7 @@ async function handleSubmit(
     });
     const dataJson = await data.json();
     setLoading(false);
-    console.log(dataJson, data);
+
     if (data.status === 201) {
       Toast({
         status: "success",

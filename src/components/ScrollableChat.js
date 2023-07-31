@@ -112,7 +112,7 @@ const ScrollableChat = ({
             color={"white"}
             position={"relative"}
             rounded={"lg"}
-            top="12"
+            top="5"
           >
             Messages are end-to-end encrypted
           </Text>

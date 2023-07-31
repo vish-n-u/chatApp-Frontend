@@ -14,12 +14,12 @@ import Login from "../components/Authentication/login";
 import Register from "../components/Authentication/register";
 
 const LoginPage = () => {
-  const [index, setIndex] = useState(0);
+  const [index, setIndex] = useState(0); // to control which tab is selected
   function handleTabsChange(index) {
     setIndex(index);
   }
   return (
-    <div className="App">
+    <div className="App" style={{ padding: "10px" }}>
       <Container w="100%">
         <Box
           bg="white"

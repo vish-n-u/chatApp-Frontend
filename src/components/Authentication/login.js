@@ -20,12 +20,16 @@ const Login = () => {
     email: "",
     password: "",
   });
-  const [triedEmail, setTriedEmail] = useState([]);
-  const [triedPassword, setTriedPassword] = useState([]);
+  const [triedEmail, setTriedEmail] = useState([]); // stores set of email which have been tried
+  const [triedPassword, setTriedPassword] = useState([]); // stores set of passwords which have been tried
   const [isLoading, setIsLoading] = useState(false);
   const Navigate = useNavigate();
   const Toast = useToast();
 
+  /**
+   *
+   * email and password empty check
+   */
   function isTrue() {
     if (Object.values(error).includes(true)) return true;
     else if (error.email !== "" || error.password !== "") return true;
@@ -122,6 +126,13 @@ const Login = () => {
   );
 };
 
+/**
+ * Logs in the user and handles success and failure scenarios.
+ *@returns {Object} An object containing either token and user details (in case of success) or an error message (in case of failure).
+ * If login is successful, the token and user details are stored in localStorage and a success Toast is displayed.
+ *  If login fails due to incorrect email or password, the corresponding input field will be cleared and an error Toast will be displayed.
+ *
+ */
 async function handleSubmit(
   email,
   setEmail,
@@ -173,7 +184,7 @@ async function handleSubmit(
       }),
     });
     const dataJson = await data.json();
-    console.log(dataJson, data);
+
     setIsLoading(false);
     if (data.status === 200) {
       Toast({
@@ -226,7 +237,13 @@ async function handleSubmit(
     }
   }
 }
-
+/**
+ * Logs in the Guest User and handles success and failure scenarios.
+ *@returns {Object} An object containing either token and user details (in case of success) or an error message (in case of failure).
+ * If login is successful, the token and user details are stored in localStorage and a success Toast is displayed.
+ *  If login fails because of internal server err, an err message is displayed
+ *
+ */
 async function handleEnterAsGuest(
   setEmail,
   setPassword,
