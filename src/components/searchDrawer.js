@@ -36,8 +36,9 @@ const SearchDrawer = ({
   setSelectedChat,
 }) => {
   useEffect(() => {
+    if (!isSearchIconClicked) return;
     getSearchedUsers(searchUsers, setsearchResultUsers, setIsLoading, Toast);
-  }, []);
+  }, [isSearchIconClicked]);
   return (
     <Drawer
       isOpen={isSearchIconClicked}
