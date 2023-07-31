@@ -13,7 +13,7 @@ import {
   Input,
   Text,
 } from "@chakra-ui/react";
-import React from "react";
+import React, { useEffect } from "react";
 import {
   getSearchedUsers,
   handleClickFunction,
@@ -35,6 +35,9 @@ const SearchDrawer = ({
   setIsChatSelected,
   setSelectedChat,
 }) => {
+  useEffect(() => {
+    getSearchedUsers(searchUsers, setsearchResultUsers, setIsLoading, Toast);
+  }, []);
   return (
     <Drawer
       isOpen={isSearchIconClicked}
@@ -62,17 +65,7 @@ const SearchDrawer = ({
               isLoading={isLoading}
               onClick={() => {
                 // console.log("searcgUser", searchUsers);
-                if (searchUsers == "") {
-                  Toast({
-                    status: "warning",
-                    duration: 3000,
-                    title: "warning",
-                    isClosable: true,
-                    description: "Search can't be empty!",
-                    position: "top-left",
-                  });
-                  return;
-                }
+
                 getSearchedUsers(
                   searchUsers,
                   setsearchResultUsers,
@@ -88,7 +81,7 @@ const SearchDrawer = ({
               key={val._id}
               display={"flex"}
               w={"full"}
-              m={"2"}
+              // m={"2"}
               my={"4"}
               py={"2"}
               h={"16"}

@@ -71,7 +71,7 @@ const Header = ({
                     setSelectedChat(notification.chatId);
                   }}
                 >
-                  <Text fontSize={"lg"} fontWeight={"semibold"}>
+                  <Text fontSize={"md"} fontWeight={"semibold"}>
                     Message from{" "}
                     {notification.chatId.isGroupChat
                       ? notification.chatId.name

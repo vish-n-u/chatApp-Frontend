@@ -19,9 +19,12 @@ import { postMessagesUrl } from "../urls";
 import * as aesJS from "aes-js";
 
 function encryptContent(content) {
-  let key = process.env.REACT_APP_encryptionKey || [
-    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
-  ];
+  let key = process.env.REACT_APP_encryptionKey.split(",");
+
+  key.map((Key, index) => {
+    key[index] = Number(Key);
+  });
+  console.log("arrkey", key);
   const contentBytes = aesJS.utils.utf8.toBytes(content);
   const aesCtr = new aesJS.ModeOfOperation.ctr(key, new aesJS.Counter(5));
   const encryptedBytes = aesCtr.encrypt(contentBytes);
@@ -31,9 +34,12 @@ function encryptContent(content) {
 }
 
 function decryptedContent(content) {
-  let key = process.env.REACT_APP_encryptionKey || [
-    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
-  ];
+  let key = process.env.REACT_APP_encryptionKey.split(",");
+
+  key.map((Key, index) => {
+    key[index] = Number(Key);
+  });
+  console.log("arrkey", key);
 
   const encryptedBytes = aesJS.utils.hex.toBytes(content);
   const aesCtr = new aesJS.ModeOfOperation.ctr(key, new aesJS.Counter(5));
@@ -112,7 +118,7 @@ const ScrollableChat = ({
             color={"white"}
             position={"relative"}
             rounded={"lg"}
-            top="5"
+            top="12"
           >
             Messages are end-to-end encrypted
           </Text>
